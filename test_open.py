@@ -1,7 +1,7 @@
 import zarr
 import napari
 
-zobj = zarr.open('https://s3-server.org/bucket-name/zarr-name', mode='r')
+zobj = zarr.open('s3-server.org/bucket-name/zarr-name', mode='r')
 print (zobj.attrs.asdict()['plate'])
 print(zobj.tree())
 print(zobj['3/7/24/1'].info)
