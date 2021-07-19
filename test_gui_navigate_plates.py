@@ -3,19 +3,17 @@ import warnings
 from magicgui import magicgui
 import zarr
 
-
 zobj=None
-
+viewer = napari.Viewer()
 
 @magicgui(auto_call=True,
             row={"max": 1},
             column={"max": 1},
             field={"max": 1},
-            resolution={"max": 0, "label": "Downscaling (2^n)"})
+            resolution={"max": 0, "label": "Downscaling (2^n)"},
+            viewer={'bind': viewer})
 def pick_area(viewer: napari.Viewer, row=0, column=0, field=0, resolution=0):
-    # maxima = retrieve_maxima(zobj)
     global zobj
-
     viewer.layers.clear()
     f_max = retrieve_fields(zobj, row, column)
     if f_max:
@@ -35,8 +33,10 @@ def retrieve_maxima(zarr_obj):
     rows = len(attrs['plate']['rows']) 
     return rows, columns
 
+
 def retrieve_fields(zarr_obj, row, column):
     well = str(row)+'/'+str(column)
+    print(f"well is {well}")
     fields = None
     try:
         fields = len(zarr_obj[well].attrs.asdict()['well']['images'])
@@ -53,8 +53,6 @@ def retrieve_res(zarr_obj, row, col, field):
 @magicgui(call_button="open",
             result_widget=True)
 def open_zarr(address=''):
-
-    
     global zobj
     try:
         zobj = zarr.open(address, mode='r')
@@ -74,7 +72,6 @@ def open_zarr(address=''):
             pick_area.resolution.value = pick_area.resolution.max
             pick_area.enabled = True
             pick_area.show()
-
             return result
         else: 
             result = 'No zattrs found - loading what we can'
@@ -82,18 +79,13 @@ def open_zarr(address=''):
             pick_area.hide()
             pick_area.enabled = False
             return result
-
     except ValueError:
         result = 'Address not found!'
         pick_area.hide()
         pick_area.enabled = False
         return result
-
+        
 pick_area.enabled = False
-
-    
-viewer = napari.Viewer()
-
 open_dock = viewer.window.add_dock_widget(open_zarr, area='top')
 pick_dock = viewer.window.add_dock_widget(pick_area, area='right')
 pick_area.visible = False
